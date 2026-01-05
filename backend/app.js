@@ -28,21 +28,26 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: function (origin, callback) {
-      // Allow server-to-server & Postman
+      // allow server-to-server / curl / render health checks
       if (!origin) return callback(null, true);
 
-      if (allowedOrigins.includes(origin)) {
+      // allow localhost
+      if (origin === "http://localhost:5173") {
         return callback(null, true);
       }
 
-      console.log("❌ Blocked by CORS:", origin);
+      // allow your vercel frontend (ALL deployments)
+      if (origin.endsWith(".vercel.app")) {
+        return callback(null, true);
+      }
+
+      console.error("❌ Blocked by CORS:", origin);
       return callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+
 
 /* ROUTES */
 app.use("/api/v1", usersAPI);
