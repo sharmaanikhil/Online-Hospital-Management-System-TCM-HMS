@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
-import { RxCross2 } from "react-icons/rx";
 import {
   FaUser,
   FaCalendarCheck,
@@ -10,9 +9,10 @@ import {
   FaSignOutAlt,
   FaClipboardList,
 } from "react-icons/fa";
+import { RxCross2 } from "react-icons/rx";
 import { useAuth } from "../../store/AuthContext";
 
-const SideBar = ({ showSidebar, setShowSidebar }) => {
+const SideBar = ({ setShowSidebar }) => {
   const { role, logout } = useAuth();
   const [linksToRender, setLinksToRender] = useState([]);
 
@@ -35,37 +35,46 @@ const SideBar = ({ showSidebar, setShowSidebar }) => {
   }, [role]);
 
   return (
-    <div className={`${showSidebar ? "translate-x-0" : "-translate-x-full"} fixed md:static top-0 left-0 w-64 h-full bg-white z-40 transition-transform`}>
-      <div className="p-6">
-        <button className="md:hidden absolute top-6 right-3" onClick={() => setShowSidebar(false)}>
-          <RxCross2 />
-        </button>
+    <div className="h-full bg-white rounded-xl shadow-md p-6 relative">
 
-        <nav className="flex flex-col gap-3">
-          {linksToRender.map((link, i) => (
-            <NavLink
-              key={i}
-              to={link.to}
-              end={link.to === "/profile"}
-              className={({ isActive }) =>
-                `flex items-center gap-4 px-4 py-3 rounded-lg ${
-                  isActive ? "bg-blue-600 text-white" : "hover:bg-blue-100"
-                }`
-              }
-            >
-              {link.icon}
-              {link.label}
-            </NavLink>
-          ))}
-        </nav>
+      {/* MOBILE CLOSE BUTTON */}
+      <button
+        onClick={() => setShowSidebar(false)}
+        className="md:hidden absolute top-4 right-4 text-gray-600 hover:text-black"
+      >
+        <RxCross2 size={20} />
+      </button>
 
-        <button
-          onClick={logout}
-          className="mt-10 w-full bg-red-500 text-white py-3 rounded-lg flex justify-center gap-2"
-        >
-          <FaSignOutAlt /> Logout
-        </button>
-      </div>
+      <h2 className="text-xl font-semibold mb-6 text-center">Dashboard</h2>
+
+      <nav className="flex flex-col gap-2">
+        {linksToRender.map((link, i) => (
+          <NavLink
+            key={i}
+            to={link.to}
+            end={link.to === "/profile"}
+            onClick={() => setShowSidebar(false)}
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition ${
+                isActive
+                  ? "bg-blue-600 text-white shadow"
+                  : "text-gray-700 hover:bg-blue-100"
+              }`
+            }
+          >
+            <span className="text-lg">{link.icon}</span>
+            {link.label}
+          </NavLink>
+        ))}
+      </nav>
+
+      <button
+        onClick={logout}
+        className="mt-10 w-full bg-red-500 hover:bg-red-600 text-white py-3 rounded-lg flex items-center justify-center gap-2 font-semibold"
+      >
+        <FaSignOutAlt />
+        Logout
+      </button>
     </div>
   );
 };
