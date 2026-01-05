@@ -5,53 +5,72 @@ const DoctorRequest = require("../models/doctorRequest");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const authMiddleware = require("../middleware/AuthMiddleware");
-const adminOnly = require("../middleware/adminOnly");
+const adminOnly = require("../middleware/adminOnly"); // ✅ NOW EXISTS
 
-// ADMIN LOGIN
+/* ================= ADMIN LOGIN ================= */
 router.post("/admin-login", async (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password)
-    return res.status(400).json({ message: "All fields required" });
+  try {
+    const { email, password } = req.body;
 
-  const admin = await User.findOne({ email });
-  if (!admin || admin.role !== "admin")
-    return res.status(400).json({ message: "Invalid credentials" });
+    if (!email || !password) {
+      return res.status(400).json({ message: "Please enter all fields" });
+    }
 
-  const isMatch = await bcrypt.compare(password, admin.password);
-  if (!isMatch)
-    return res.status(400).json({ message: "Invalid credentials" });
+    const admin = await User.findOne({ email });
+    if (!admin || admin.role !== "admin") {
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
 
-  const token = jwt.sign(
-    { id: admin._id, role: "admin" },
-    process.env.JWT_SECRET,
-    { expiresIn: "7d" }
-  );
+    const isMatch = await bcrypt.compare(password, admin.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
 
-  res.cookie("vhaToken", token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "Lax",
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-  });
+    const token = jwt.sign(
+      { id: admin._id, role: "admin" },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
 
-  res.json({ message: "Login successful", user: { email } });
+    res.cookie("vhaToken", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "Lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    res.status(200).json({
+      message: "Login successful",
+      user: { email: admin.email },
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
 });
 
-// DASHBOARD
+/* ================= DASHBOARD STATS ================= */
 router.get(
   "/dashboard-details",
   authMiddleware,
   adminOnly,
   async (req, res) => {
-    const patients = await User.countDocuments({ role: "patient" });
-    const doctors = await User.countDocuments({ role: "doctor" });
-    const admins = await User.countDocuments({ role: "admin" });
+    try {
+      const patients = await User.countDocuments({ role: "patient" });
+      const doctors = await User.countDocuments({ role: "doctor" });
+      const admins = await User.countDocuments({ role: "admin" });
 
-    res.json({ success: true, data: { patients, doctors, admins } });
+      res.status(200).json({
+        success: true,
+        data: { patients, doctors, admins },
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Server error" });
+    }
   }
 );
 
-// FETCH MESSAGES
+/* ================= FETCH MESSAGES ================= */
 router.get(
   "/fetch-messages",
   authMiddleware,
@@ -62,7 +81,7 @@ router.get(
   }
 );
 
-// FETCH DOCTOR REQUESTS
+/* ================= FETCH DOCTOR REQUESTS ================= */
 router.get(
   "/fetch-doctors-requests",
   authMiddleware,
@@ -73,21 +92,21 @@ router.get(
   }
 );
 
-// UPDATE DOCTOR REQUEST
+/* ================= UPDATE DOCTOR REQUEST ================= */
 router.put(
   "/update-doctor-request/:id",
   authMiddleware,
   adminOnly,
   async (req, res) => {
     const { status } = req.body;
-    if (!["Pending", "Approved", "Rejected"].includes(status))
-      return res.status(400).json({ message: "Invalid status" });
 
-    const request = await DoctorRequest.findByIdAndUpdate(
-      req.params.id,
-      { status },
-      { new: true }
-    );
+    const request = await DoctorRequest.findById(req.params.id);
+    if (!request) {
+      return res.status(404).json({ message: "Request not found" });
+    }
+
+    request.status = status;
+    await request.save();
 
     if (status === "Approved") {
       await User.findByIdAndUpdate(request.userId, {
@@ -102,7 +121,7 @@ router.put(
       });
     }
 
-    res.json({ success: true, message: "Updated successfully" });
+    res.json({ success: true, message: "Status updated" });
   }
 );
 
