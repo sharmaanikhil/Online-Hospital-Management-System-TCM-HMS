@@ -21,21 +21,26 @@ app.use(cookieParser());
 
 /* 🌐 CORS CONFIG (DEV + PROD SAFE) */
 const allowedOrigins = [
-  "http://localhost:5173",                 // local frontend
-  process.env.FRONTEND_URL                // deployed frontend (Vercel)
+  "http://localhost:5173",
+  process.env.FRONTEND_URL
 ];
 
 app.use(
   cors({
     origin: function (origin, callback) {
+      // Allow server-to-server & Postman
       if (!origin) return callback(null, true);
+
       if (allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
+        return callback(null, true);
       }
+
+      console.log("❌ Blocked by CORS:", origin);
+      return callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
