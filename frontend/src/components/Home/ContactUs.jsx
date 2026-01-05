@@ -1,7 +1,6 @@
 import React, { useState } from "react";
-import axios from "axios";
 import { toast } from "react-toastify";
-import { API_BASE_URL } from "../../config/api";
+import api from "../../config/api";
 
 const ContactUs = () => {
   const [formData, setFormData] = useState({
@@ -27,15 +26,18 @@ const ContactUs = () => {
     }
 
     try {
-      const res = await axios.post(
-        `${API_BASE_URL}/api/v1/send-message`,
-        { name, email, message }
-      );
+      const { data } = await api.post("/api/v1/send-message", {
+        name,
+        email,
+        message,
+      });
 
-      toast.success(res.data.message);
+      toast.success(data.message);
       setFormData({ name: "", email: "", message: "" });
     } catch (error) {
-      toast.error(error.response?.data?.error || "Internal Server Error");
+      toast.error(
+        error.response?.data?.error || "Internal Server Error"
+      );
     }
   };
 

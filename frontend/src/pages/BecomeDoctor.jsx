@@ -1,17 +1,9 @@
 import React, { useState } from "react";
-import axios from "axios";
-import {
-  FaUserMd,
-  FaEnvelope,
-  FaFileUpload,
-  FaUserGraduate,
-  FaMapMarkerAlt,
-} from "react-icons/fa";
-import { useAuth } from "../store/AuthContext";
 import { toast } from "react-toastify";
+import { useAuth } from "../store/AuthContext";
+import api from "../config/api";
 
 const BecomeDoctor = () => {
-  const BASE_URL = import.meta.env.VITE_BACKEND_URL;
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -24,10 +16,10 @@ const BecomeDoctor = () => {
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
-    setFormData({
-      ...formData,
+    setFormData((prev) => ({
+      ...prev,
       [name]: files ? files[0] : value,
-    });
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -38,12 +30,10 @@ const BecomeDoctor = () => {
     Object.entries(formData).forEach(([k, v]) => fd.append(k, v));
 
     try {
-      await axios.post(`${BASE_URL}/api/v1/doctor-request`, fd, {
-        withCredentials: true,
-      });
-      toast.success("Request submitted");
+      await api.post("/api/v1/doctor-request", fd);
+      toast.success("Doctor request submitted");
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed");
+      toast.error(err.response?.data?.message || "Submission failed");
     } finally {
       setLoading(false);
     }
@@ -61,13 +51,10 @@ const BecomeDoctor = () => {
         <input value={user.email} disabled className="input" />
 
         <input type="file" name="profilePhoto" onChange={handleChange} />
+        <input name="specialization" onChange={handleChange} placeholder="Specialization" />
         <input name="degree" onChange={handleChange} placeholder="Degree" />
         <input name="address" onChange={handleChange} placeholder="Address" />
-        <textarea
-          name="description"
-          onChange={handleChange}
-          placeholder="Description"
-        />
+        <textarea name="description" onChange={handleChange} placeholder="Description" />
 
         <button className="btn" disabled={loading}>
           {loading ? "Submitting..." : "Submit"}

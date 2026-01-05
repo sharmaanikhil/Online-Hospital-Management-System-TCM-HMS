@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { FaRobot } from "react-icons/fa";
 import { IoSend } from "react-icons/io5";
-import axios from "axios";
-import { API_BASE_URL } from "../../../config/api";
+import api from "../../../config/api";
 
 const AiChatboat = () => {
   const [messages, setMessages] = useState([
@@ -13,32 +12,27 @@ const AiChatboat = () => {
   const [apiKey, setApiKey] = useState("");
 
   useEffect(() => {
-    const fetchKey = async () => {
-      try {
-        const res = await axios.get(
-          `${API_BASE_URL}/api/v1/get-openRouter-key`,
-          { withCredentials: true }
-        );
-        setApiKey(res.data.key);
-      } catch (err) {
-        console.error("Failed to load AI key");
-      }
-    };
-    fetchKey();
+    api.get("/api/v1/get-openRouter-key")
+      .then((res) => setApiKey(res.data.key))
+      .catch(() => console.error("Failed to load AI key"));
   }, []);
 
   const handleSend = async () => {
     if (!input.trim() || !apiKey) return;
 
-    const userMessage = { sender: "user", text: input };
-    setMessages((prev) => [...prev, userMessage]);
+    const userText = input;
+    setMessages((p) => [...p, { sender: "user", text: userText }]);
     setInput("");
     setLoading(true);
 
     try {
-      const res = await axios.post(
-        "https://openrouter.ai/api/v1/chat/completions",
-        {
+      const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
           model: "openai/gpt-3.5-turbo",
           messages: [
             { role: "system", content: "You are a safe health assistant." },
@@ -46,26 +40,15 @@ const AiChatboat = () => {
               role: m.sender === "user" ? "user" : "assistant",
               content: m.text,
             })),
-            { role: "user", content: input },
+            { role: "user", content: userText },
           ],
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${apiKey}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+        }),
+      });
 
-      setMessages((prev) => [
-        ...prev,
-        { sender: "bot", text: res.data.choices[0].message.content },
-      ]);
+      const data = await res.json();
+      setMessages((p) => [...p, { sender: "bot", text: data.choices[0].message.content }]);
     } catch {
-      setMessages((prev) => [
-        ...prev,
-        { sender: "bot", text: "AI error. Try again." },
-      ]);
+      setMessages((p) => [...p, { sender: "bot", text: "AI error. Try again." }]);
     } finally {
       setLoading(false);
     }

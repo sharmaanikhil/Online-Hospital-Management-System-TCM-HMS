@@ -9,11 +9,13 @@ const ProtectedRoute = ({ allowedRole, children }) => {
     return <div>Authenticating...</div>;
   }
 
-  if (!user && loading === false) {
+  // Not logged in
+  if (!user) {
     return <Navigate to="/get-started" replace />;
   }
 
-  if (allowedRole !== role) {
+  // Role-based protection ONLY if allowedRole is provided
+  if (allowedRole && role !== allowedRole) {
     return <Navigate to="/404" replace />;
   }
 

@@ -1,19 +1,14 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { toast } from "react-toastify";
+import api from "../../config/api";
 
 const DoctorRequests = () => {
-  const BASE_URL = import.meta.env.VITE_BACKEND_URL;
-
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const fetchRequests = async () => {
     try {
-      const { data } = await axios.get(
-        `${BASE_URL}/api/v1/fetch-doctors-requests`,
-        { withCredentials: true }
-      );
+      const { data } = await api.get("/api/v1/fetch-doctors-requests");
       setRequests(data.data);
     } catch {
       toast.error("Failed to fetch requests");
@@ -24,11 +19,7 @@ const DoctorRequests = () => {
 
   const updateStatus = async (id, status) => {
     try {
-      await axios.put(
-        `${BASE_URL}/api/v1/update-doctor-request/${id}`,
-        { status },
-        { withCredentials: true }
-      );
+      await api.put(`/api/v1/update-doctor-request/${id}`, { status });
       toast.success("Status updated");
       fetchRequests();
     } catch {
@@ -48,7 +39,9 @@ const DoctorRequests = () => {
 
       {requests.map((req) => (
         <div key={req._id} className="bg-white p-4 rounded shadow mb-4">
-          <p><b>{req.name}</b> — {req.specialization}</p>
+          <p>
+            <b>{req.name}</b> — {req.specialization}
+          </p>
           <select
             value={req.status}
             onChange={(e) => updateStatus(req._id, e.target.value)}

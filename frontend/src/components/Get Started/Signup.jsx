@@ -1,7 +1,6 @@
 import React, { useState } from "react";
-import axios from "axios";
 import { toast } from "react-toastify";
-import { API_BASE_URL } from "../../config/api";
+import api from "../../config/api";
 
 const Signup = ({ toggle }) => {
   const [showPassword, setShowPassword] = useState(false);
@@ -20,26 +19,17 @@ const Signup = ({ toggle }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (
-      !form.email ||
-      !form.name ||
-      !form.password ||
-      !form.gender ||
-      !form.contact
-    ) {
+    const { email, name, password, gender, contact } = form;
+
+    if (!email || !name || !password || !gender || !contact) {
       toast.error("All fields are required");
       return;
     }
 
     try {
-      const res = await axios.post(
-        `${API_BASE_URL}/api/v1/sign-up`,
-        form,
-        { withCredentials: true }
-      );
-
-      toast.success(res.data.message);
-      toggle();
+      const { data } = await api.post("/api/v1/sign-up", form);
+      toast.success(data.message);
+      toggle(); // switch to login
     } catch (error) {
       toast.error(
         error.response?.data?.error || "Failed to sign up. Try again."

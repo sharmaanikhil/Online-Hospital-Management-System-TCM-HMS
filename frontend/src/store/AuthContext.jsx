@@ -1,6 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import axios from "axios";
-import { API_BASE_URL } from "../config/api";
+import api from "../config/api";
 
 const AuthContext = createContext();
 
@@ -14,34 +13,20 @@ export const AuthProvider = ({ children }) => {
 
   // LOGIN
   const login = async (email, password) => {
-    try {
-      const res = await axios.post(
-        `${API_BASE_URL}/api/v1/login`,
-        { email, password },
-        { withCredentials: true }
-      );
+    const { data } = await api.post("/api/v1/login", {
+      email,
+      password,
+    });
 
-      const userData = res.data.user;
-      setUser(userData);
-      setRole(userData.role);
-      setIsLoggedIn(true);
-    } catch (err) {
-      console.error(
-        "Login failed",
-        err.response?.data?.message || err.message
-      );
-      throw err;
-    }
+    setUser(data.user);
+    setRole(data.user.role);
+    setIsLoggedIn(true);
   };
 
   // LOGOUT
   const logout = async () => {
     try {
-      await axios.get(`${API_BASE_URL}/api/v1/logout`, {
-        withCredentials: true,
-      });
-    } catch (err) {
-      console.error("Logout failed", err.message);
+      await api.get("/api/v1/logout");
     } finally {
       setUser(null);
       setRole("user");
@@ -49,19 +34,17 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // FETCH CURRENT USER (SESSION PERSISTENCE)
+  // SESSION RESTORE
   const fetchCurrentUser = async () => {
     try {
-      const res = await axios.get(`${API_BASE_URL}/api/v1/user-details`, {
-        withCredentials: true,
-      });
-
-      const userData = res.data.user;
-      setUser(userData);
-      setRole(userData.role);
+      const { data } = await api.get("/api/v1/user-details");
+      setUser(data.user);
+      setRole(data.user.role);
       setIsLoggedIn(true);
-    } catch (err) {
-      // not logged in or session expired
+    } catch {
+      setUser(null);
+      setRole("user");
+      setIsLoggedIn(false);
     } finally {
       setLoading(false);
     }
@@ -72,13 +55,8 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   // HELPERS
-  const changeRole = (value) => {
-    setRole(value);
-  };
-
-  const changeUser = (value) => {
-    setUser(value);
-  };
+  const changeRole = (value) => setRole(value);
+  const changeUser = (value) => setUser(value);
 
   const uploadReportContext = (reportUrl) => {
     setUser((prev) => ({

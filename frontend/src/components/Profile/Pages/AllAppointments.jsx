@@ -1,16 +1,14 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
-import { API_BASE_URL } from "../../../config/api";
 import { toast } from "react-toastify";
+import api from "../../../config/api";
 
 const AllAppointments = () => {
   const [appointments, setAppointments] = useState([]);
 
   useEffect(() => {
-    axios
-      .get(`${API_BASE_URL}/api/v1/doctor-appointments`, { withCredentials: true })
+    api.get("/api/v1/doctor-appointments")
       .then((res) => setAppointments(res.data.appointments || []))
-      .catch(() => toast.error("Failed to load"));
+      .catch(() => toast.error("Failed to load appointments"));
   }, []);
 
   return (

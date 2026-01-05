@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { FaUserInjured, FaUserMd, FaUserShield } from "react-icons/fa";
-import axios from "axios";
 import { toast } from "react-toastify";
+import api from "../../config/api";
 
 const Dashboard = () => {
-  const BASE_URL = import.meta.env.VITE_BACKEND_URL;
-
   const [counts, setCounts] = useState({
     patients: 0,
     doctors: 0,
@@ -14,10 +12,7 @@ const Dashboard = () => {
 
   const fetchCounts = async () => {
     try {
-      const { data } = await axios.get(
-        `${BASE_URL}/api/v1/dashboard-details`,
-        { withCredentials: true }
-      );
+      const { data } = await api.get("/api/v1/dashboard-details");
       setCounts(data.data);
     } catch {
       toast.error("Failed to fetch dashboard data");

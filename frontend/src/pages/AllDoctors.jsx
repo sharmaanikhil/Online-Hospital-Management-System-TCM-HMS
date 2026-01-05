@@ -21,7 +21,7 @@ const AllDoctors = () => {
 
   useEffect(() => {
     fetchDoctors();
-  }, []);
+  }, [fetchDoctors]);
 
   const filteredDoctors =
     selectedSpecialty === "All"
@@ -31,7 +31,10 @@ const AllDoctors = () => {
         );
 
   const handleBookNow = (id) => {
-    if (!user) return toast.error("Please login first");
+    if (!user) {
+      toast.error("Please login first");
+      return;
+    }
     navigate(`/consult-doctor/${id}`);
   };
 
@@ -59,6 +62,7 @@ const AllDoctors = () => {
           <div key={d._id} className="bg-white p-6 rounded shadow text-center">
             <img
               src={d.doctorInfo.profilePhoto}
+              alt={d.name}
               className="w-24 h-24 mx-auto rounded-full mb-4"
             />
             <h4 className="font-semibold">{d.name}</h4>

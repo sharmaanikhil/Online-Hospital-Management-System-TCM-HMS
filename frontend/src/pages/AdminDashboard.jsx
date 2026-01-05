@@ -4,11 +4,9 @@ import { Outlet } from "react-router-dom";
 
 const AdminDashboard = () => {
   return (
-    <div className="flex gap-8">
-      <div className="w-1/6">
-        <AdminSideBar />
-      </div>
-      <div className="w-5/6 p-8">
+    <div className="flex min-h-screen">
+      <AdminSideBar />
+      <div className="flex-1 p-8">
         <Outlet />
       </div>
     </div>

@@ -11,7 +11,7 @@ const ConsultDoctors = () => {
 
   useEffect(() => {
     fetchDoctors();
-  }, []);
+  }, [fetchDoctors]);
 
   const handleBookNow = () => {
     if (!user) {
@@ -34,7 +34,7 @@ const ConsultDoctors = () => {
             className="bg-white rounded-lg shadow-md p-6 flex flex-col items-center text-center hover:shadow-lg transition"
           >
             <img
-              src={doctor.doctorInfo.profilePhoto}
+              src={doctor.doctorInfo?.profilePhoto}
               alt={doctor.name}
               className="w-24 h-24 rounded-full object-cover mb-4 border-4 border-blue-200"
             />
@@ -42,10 +42,10 @@ const ConsultDoctors = () => {
               {doctor.name}
             </h4>
             <p className="text-sm text-gray-500">
-              {doctor.doctorInfo.specialization}
+              {doctor.doctorInfo?.specialization}
             </p>
             <p className="text-sm text-gray-600 mt-2">
-              {doctor.doctorInfo.address}
+              {doctor.doctorInfo?.address}
             </p>
 
             <button
